@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
 import { Moon, Sun, LogOut, Video, Database, MessageSquare, History, Check, Search, Paperclip, Send, Edit2, X } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import axios from "axios";
+import ReactMarkdown from "react-markdown"
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -120,6 +121,8 @@ const Dashboard = () => {
     setEditingMeetingId(null);
   };
 
+
+
   const cancelEdit = (e) => {
     e.stopPropagation();
     setEditingMeetingId(null);
@@ -172,6 +175,15 @@ const Dashboard = () => {
     }
 
   };
+  const scrollRef = useRef(null);
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      })
+    }
+  }, [messages])
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 font-sans text-slate-900 dark:text-slate-100">
@@ -375,14 +387,14 @@ const Dashboard = () => {
             </CardHeader>
 
             {/* Chat Messages */}
-            <CardContent className="flex-1 overflow-y-auto p-6 space-y-6">
+            <CardContent className="flex-1 overflow-y-auto p-6 space-y-6" ref={scrollRef}>
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.role === 'human' ? 'justify-end' : 'justify-start'}`}>
                   <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm ${msg.role === 'human'
                     ? 'bg-indigo-600 text-white rounded-tr-sm'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-sm'
                     }`}>
-                    {msg.content}
+                    <ReactMarkdown>{msg.content}</ReactMarkdown>
                   </div>
                 </div>
               ))}

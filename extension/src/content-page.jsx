@@ -236,7 +236,7 @@ export default function App() {
     async function generateChunk() {
 
         // chunk after every 4 utterances
-        if (transcript.current.length < 15) {
+        if (transcript.current.length < 5) {
             console.log(transcript.current.length);
             return;
         }

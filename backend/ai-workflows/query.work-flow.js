@@ -72,22 +72,32 @@ const extract_query_type = async (state) => {
         const result = await llm.invoke([
             {
                 role: "system",
-                content: `Classify the query into one of:
+                content: `Classify the user query into ONE of these labels:
 
-                        1. SPECIFIC
-                        - asks about exact discussion details
-                        - asks what someone said
-                        - asks about a topic/person
+                1. SMALL_TALK
+                - greetings
+                - hello/hi
+                - thanks
+                - casual conversation
+                - asking today's date/time
+                - non-meeting queries
 
-                        2. GENERAL
-                        - asks for overall summary
-                        - asks for action items
-                        - asks for high level insights
+                2. SPECIFIC
+                - asks about exact meeting details
+                - asks what someone said
+                - asks about a topic/person discussed
+                - asks factual questions from meeting
 
-                        Return only:
-                        SPECIFIC
-                        or
-                        GENERAL`
+                3. GENERAL
+                - asks for meeting summary
+                - asks for action items
+                - asks for high level insights
+                - asks for overall discussion
+
+                Return ONLY one word:
+                SMALL_TALK
+                SPECIFIC
+                GENERAL`
             },
             {
                 role: "user",
@@ -108,8 +118,12 @@ const extract_query_type = async (state) => {
 const query_type_router = (state) => {
     if (state.query_type === "SPECIFIC") {
         return "specific";
-    } else {
+    }
+    else if (state.query_type === "GENERAL") {
         return "general";
+    }
+    else {
+        return "small_talk";
     }
 }
 
@@ -159,18 +173,38 @@ const general_query = async (state) => {
     return state;
 }
 
+const small_talk = async (state) => {
+    const query = state.messages[state.messages.length - 1].content;
+    const result = await llm.invoke([
+        ...state.messages
+    ])
+    state.llm_response = result['content']
+    return state;
+}
+
 const llm_call = async (state) => {
     const result = await llm.invoke([
         {
             role: "system",
-            content: `You are an AI assistant that answers questions about a meeting.
+            content: `You are an AI meeting assistant.
 
-                        Here is some context from the meeting:
+                    Your primary task is to answer questions about a meeting using the provided meeting context.
 
-                        ${state.context}
+                    Guidelines:
+                    1. Use the meeting context as the main source of truth.
+                    2. If the answer exists in the context, answer accurately and concisely.
+                    3. If the context is incomplete or unrelated to the user’s question, you may answer using your general knowledge.
+                    4. Clearly separate inferred/general answers from meeting-specific information when necessary.
+                    5. Do not hallucinate details that are not present in the meeting context.
+                    6. Maintain a natural conversational tone.
 
-                        Now answer this question:
-                    `,
+                    Meeting Context:
+                    ${state.context || "No relevant meeting context available."}
+
+                    User Question:
+                    ${state.question}
+
+                    Answer:`,
         },
         ...state.messages
     ])
@@ -183,11 +217,13 @@ const agent = new StateGraph({ channels: MessagesState })
     .addNode("extract_query_type", extract_query_type)
     .addNode("specific_query", sepcific_query)
     .addNode("general_query", general_query)
+    .addNode("small_talk", small_talk)
     .addNode("llm_call", llm_call)
     .addEdge(START, "extract_query_type")
-    .addConditionalEdges("extract_query_type", query_type_router, { specific: "specific_query", general: "general_query" })
+    .addConditionalEdges("extract_query_type", query_type_router, { specific: "specific_query", general: "general_query", small_talk: "small_talk" })
     .addEdge("specific_query", "llm_call")
     .addEdge("general_query", "llm_call")
+    .addEdge("small_talk", END)
     .addEdge("llm_call", END)
 
 

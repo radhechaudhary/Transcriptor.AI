@@ -100,7 +100,6 @@ const uploadChunk = async (req, res) => {
             await collection.add({
                 documents: [documentText],
                 metadatas: [{
-                    speakers: [...new Set(chunk.map(c => c.speaker))],
                     startTime: chunk[0].timestamp,
                     endTime: chunk[chunk.length - 1].timestamp,
                     meeting_id: original_meeting_id,
