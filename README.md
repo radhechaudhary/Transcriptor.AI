@@ -46,7 +46,7 @@ meet_extension/
 5. **Load the extension**
    - Open Chrome extensions (`chrome://extensions`).
    - Enable *Developer mode*.
-   - Click *Load unpacked* and select `extension/` directory.
+   - Click *Load unpacked* and select `extension/dist` directory.
 
 ## Development
 - **Backend**: Edit files under `backend/`. The API is documented in `backend/routes/`.
@@ -67,6 +67,3 @@ meet_extension/
 2. Create a feature branch.
 3. Ensure linting passes (`npm run lint`).
 4. Open a Pull Request describing your changes.
-
-## License
-This project is licensed under the MIT License.
