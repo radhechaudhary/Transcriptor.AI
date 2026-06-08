@@ -12,13 +12,14 @@ export default function OverlayContainer({
   isRecording,
   setIsRecording,
   onEnd,
-  setShowChatBox
+  setShowChatBox,
+  showChatBox
 }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   // new state for chatbox visibility
-  const [showChatBox, setShowChatBox] = useState(false);
+  // const [showChatBox, setShowChatBox] = useState(false);
 
   const handleMouseDown = (e) => {
     // Only start dragging if left mouse button is pressed

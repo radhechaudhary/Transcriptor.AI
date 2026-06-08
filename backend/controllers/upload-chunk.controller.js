@@ -32,7 +32,7 @@ const summarizeChunk = async (chunk, meeting_id, chunk_id) => {
         `);
         // console.log(summary['content'])
         try {
-            // db.query(`INSERT INTO chunk_summaries (meeting_id,sequence_number, start_chunk_id, end_chunk_id, summary) VALUES ($1, $2, $3, $4, $5)`, [meeting_id, sequence[meeting_id], start_chunk_id[meeting_id], chunk_id, summary['content']]);
+            db.query(`INSERT INTO chunk_summaries (meeting_id,sequence_number, start_chunk_id, end_chunk_id, summary) VALUES ($1, $2, $3, $4, $5)`, [meeting_id, sequence[meeting_id], start_chunk_id[meeting_id], chunk_id, summary['content']]);
             console.log("Summary inserted successfully");
         } catch (err) {
             console.log("Error in inserting summary", err)

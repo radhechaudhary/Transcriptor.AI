@@ -70,7 +70,7 @@ export default function OverlayChatBox({ meetingId, onClose, messages, setMessag
     setMessages((prev) => [...prev, { role: 'human', content: msg }]);
     setInput('');
     setLoading(true);
-    axios.post("http://localhost:4000/chat-query/query", {
+    axios.post("http://localhost:4000/chat-query/current-query", {
       meeting_ids: [meetingId],
       messages: [...messages, { role: 'human', content: msg }],
     }, {

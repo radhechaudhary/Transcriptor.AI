@@ -2,6 +2,8 @@ import db from "../database/meet.db.js";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
+import { sessions } from '../constants.js'
+import crypto from "crypto";
 dotenv.config()
 
 const register = async (req, res) => {
@@ -40,6 +42,9 @@ const register = async (req, res) => {
 }
 
 const login = async (req, res) => {
+    console.log(req.headers.origin, "originn");
+    const origin = req.headers.origin;
+
     try {
         const { gmail, password } = req.body;
         // console.log(req.body, "bhut fark padta hai");
@@ -66,6 +71,26 @@ const login = async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "Invalid password"
+            })
+        }
+        if (origin.includes("https://meet.google.com")) {
+            const session_id = crypto.randomUUID();
+            console.log("Meet Login");
+            sessions[gmail] = session_id;
+            console.log(sessions);
+            res.cookie("session_id", session_id, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            })
+            res.cookie("gmail", gmail, {
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+            })
+            return res.status(200).json({
+                success: true,
+                message: "Session created successfully",
             })
         }
 

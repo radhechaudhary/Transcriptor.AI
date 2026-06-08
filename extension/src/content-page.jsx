@@ -14,7 +14,7 @@ export default function App() {
     const observer = useRef(null);
 
     useEffect(() => {
-        axios.get("http://localhost:4000/user/auth", { withCredentials: true })
+        axios.get("http://localhost:4000/user/meet-auth", { withCredentials: true })
             .then((res) => {
                 console.log("response from server", res.data);
                 setIsLoggedIn(res.data.success);

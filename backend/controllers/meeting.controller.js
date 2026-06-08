@@ -5,6 +5,7 @@ import getLLM from "../ai-workflows/chatModel.js";
 
 const startMeeting = (req, res) => {
     var { meeting_id } = req.body;
+    // console.log(req.user.gmail)
     meeting_id = meeting_id + " " + req.user.gmail;
     if (meeting_saved[meeting_id]) {
         return res.status(400).json({
