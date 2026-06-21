@@ -66,7 +66,7 @@ const editCurrentMeetingName = (req, res) => {
 
 const editMeetingName = async (req, res) => {
     var { meeting_id, name } = req.body;
-    if (!meeting_id || !gmail) {
+    if (!meeting_id || !req.user.gmail) {
         return res.status(400).json({
             success: false,
             message: "Meeting ID and gmail is required"
