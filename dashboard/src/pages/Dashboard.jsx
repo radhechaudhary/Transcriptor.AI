@@ -41,7 +41,7 @@ const Dashboard = () => {
 
   // ......................Fetching User Info...........................
   useEffect(() => {
-    axios.get("http://localhost:4000/dashboard/fetch", {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/dashboard/fetch`, {
       withCredentials: true
     }).then(res => {
 
@@ -92,7 +92,7 @@ const Dashboard = () => {
     console.log(editTitle, editingMeetingId)
     if (editingMeetingId === 'current') {
       setCurrentMeeting({ ...currentMeeting, name: editTitle.trim() });
-      axios.post("http://localhost:4000/dashboard/edit-current-meeting-name", {
+      axios.post("${import.meta.env.VITE_BACKEND_URL}/dashboard/edit-current-meeting-name", {
         meeting_id: currentMeeting.meeting_id,
         name: editTitle.trim()
       }, {
@@ -106,7 +106,7 @@ const Dashboard = () => {
       let temp = olderMeetings.map(m => m.meeting_id === editingMeetingId ? { ...m, name: editTitle.trim() } : m);
       console.log("-------------------", temp)
       setOlderMeetings(temp)
-      axios.post("http://localhost:4000/dashboard/edit-meeting-name", {
+      axios.post(`${import.meta.env.VITE_BACKEND_URL}/dashboard/edit-meeting-name`, {
         meeting_id: editingMeetingId,
         name: editTitle.trim()
       }, {
@@ -136,7 +136,7 @@ const Dashboard = () => {
   const [isSelectingResources, setIsSelectingResources] = useState(false);
 
   const handleLogout = () => {
-    axios.post("http://localhost:4000/user/logout", {}, { withCredentials: true }).then(res => {
+    axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/logout`, {}, { withCredentials: true }).then(res => {
       navigate('/login', { replace: true });
     }).catch(error => {
       console.log(error);
@@ -158,7 +158,7 @@ const Dashboard = () => {
     const msg = chatInput;
     setChatInput('');
     try {
-      await axios.post("http://localhost:4000/chat-query/query", {
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/chat-query/query`, {
         meeting_ids: selectedResources,
         messages: [...messages, { role: 'human', content: msg }],
       }, {

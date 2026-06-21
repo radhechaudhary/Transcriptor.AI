@@ -12,7 +12,7 @@ const Signup = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:4000/user/auth", { withCredentials: true }).then(res => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/auth`, { withCredentials: true }).then(res => {
       navigate('/dashboard', { replace: true });
     }).catch(err => {
       console.log(err);
@@ -25,7 +25,7 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:4000/user/register", { name, gmail: email, password }, { withCredentials: true });
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/user/register`, { name, gmail: email, password }, { withCredentials: true });
       navigate('/dashboard', { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "An error occurred during signup");

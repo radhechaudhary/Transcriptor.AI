@@ -5,6 +5,8 @@ import { ArrowLeft, Trash2, Clock, Calendar, Users, MessageSquare, Sun, Moon, Li
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import axios from 'axios'
+import html2pdf from 'html2pdf.js';
+
 
 const MeetingDetails = () => {
   const { meeting_id } = useParams();
@@ -30,8 +32,7 @@ const MeetingDetails = () => {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/dashboard/fetch-meeting/${meeting_id}`, { withCredentials: true })
-        console.log(res.data)
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/dashboard/fetch-meeting/${meeting_id}`, { withCredentials: true })
         setMeeting({ ...meeting, ...res.data })
       }
       catch (err) {
@@ -47,7 +48,7 @@ const MeetingDetails = () => {
   const handleDelete = async () => {
     // Simulate API call for deletion
     try {
-      await axios.delete(`http://localhost:4000/dashboard/delete-meeting/${meeting_id}`, { withCredentials: true })
+      await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/dashboard/delete-meeting/${meeting_id}`, { withCredentials: true })
       navigate('/dashboard')
     }
     catch (err) {
@@ -241,8 +242,14 @@ const MeetingDetails = () => {
       </html>
     `;
 
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    const container = document.createElement("div");
+
+    container.innerHTML = htmlContent;
+
+
+    html2pdf()
+      .from(container)
+      .save("meeting-report.pdf");
   };
 
   return (
