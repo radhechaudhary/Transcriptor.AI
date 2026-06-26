@@ -1,4 +1,4 @@
-# Meet Extension
+# Transcriptor.AI
 
 A Google Meet browser extension that provides an AI-powered chat overlay to interact with meeting recordings, manage captions, and query meeting content.
 
