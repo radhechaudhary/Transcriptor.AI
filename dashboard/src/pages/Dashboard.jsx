@@ -92,7 +92,7 @@ const Dashboard = () => {
     console.log(editTitle, editingMeetingId)
     if (editingMeetingId === 'current') {
       setCurrentMeeting({ ...currentMeeting, name: editTitle.trim() });
-      axios.post("${import.meta.env.VITE_BACKEND_URL}/dashboard/edit-current-meeting-name", {
+      axios.post(`${import.meta.env.VITE_BACKEND_URL}/dashboard/edit-current-meeting-name`, {
         meeting_id: currentMeeting.meeting_id,
         name: editTitle.trim()
       }, {

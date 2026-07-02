@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import jsonwebtoken from "jsonwebtoken"
-import { current_recordings, sessions } from "../constants.js";
+import client from "../redis-client.js";
 
 dotenv.config();
 
@@ -25,22 +25,21 @@ const auth = async (req, res) => {
         message: "Authorized",
         name: decoded.name,
         gmail: decoded.gmail,
-        status: current_recordings[decoded.gmail] ? false : true
+        status: await client.exists(`meeting:${decoded.gmail}`) ? false : true
     })
 }
 
 const sessionAuth = async (req, res) => {
     const session_id = req.cookies.session_id;
     const gmail = req.cookies.gmail;
-    console.log(session_id, "session_id");
-    console.log(gmail, "gmail");
     if (!session_id || !gmail) {
         return res.status(401).json({
             success: false,
             message: "Unauthorized"
         })
     }
-    if (!sessions[gmail] || sessions[gmail] != session_id) {
+    const stored_session_id = await client.get(gmail);
+    if (!stored_session_id || stored_session_id != session_id) {
         return res.status(401).json({
             success: false,
             message: "Unauthorized"
@@ -50,7 +49,7 @@ const sessionAuth = async (req, res) => {
         success: true,
         message: "Authorized",
         gmail: gmail,
-        status: current_recordings[gmail] ? false : true
+        status: await client.exists(`meeting:${gmail}`) ? false : true
     })
 }
 

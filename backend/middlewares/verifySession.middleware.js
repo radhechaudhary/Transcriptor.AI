@@ -1,17 +1,16 @@
-import { sessions } from "../constants.js";
+import client from "../redis-client.js";
 
-const verifySession = (req, res, next) => {
+const verifySession = async (req, res, next) => {
     const session_id = req.cookies.session_id;
     const gmail = req.cookies.gmail;
-    console.log(session_id, "session_id");
-    console.log(gmail, "gmail");
     if (!session_id || !gmail) {
         return res.status(401).json({
             success: false,
             message: "Unauthorized"
         })
     }
-    if (!sessions[gmail] || sessions[gmail] != session_id) {
+    const stored_session_id = await client.get(gmail);
+    if (!stored_session_id || stored_session_id != session_id) {
         return res.status(401).json({
             success: false,
             message: "Unauthorized"

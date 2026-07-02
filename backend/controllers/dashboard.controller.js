@@ -1,6 +1,7 @@
 import db from "../database/meet.db.js";
-import { meeting_status, current_recordings, meeting_start_time, meeting_end_time, meeting_name, meeting_saved } from "../constants.js";
+import { meeting_saved } from "../constants.js";
 import { collection } from "../db/rag.js";
+import client from "../redis-client.js";
 
 const fetchDashBoardInfo = async (req, res) => {
     try {
@@ -23,9 +24,10 @@ const fetchDashBoardInfo = async (req, res) => {
 
         }
         var currentMeeting = null;
-        if (current_recordings[gmail]) {
-            let meetingId = current_recordings[gmail];
-            currentMeeting = { status: meeting_status[meetingId], name: meeting_name[meetingId] || meetingId.split(" ")[0], meeting_id: meetingId.split(" ")[0], duration: meeting_end_time[meetingId] - meeting_start_time[meetingId] }
+        var current_recording = await client.hGetAll(`meeting:${req.user.gmail}`);
+        console.log(current_recording)
+        if (current_recording) {
+            currentMeeting = { status: current_recording.status, name: current_recording.name, meeting_id: current_recording.meeting_id, duration: current_recording.end_time - current_recording.start_time }
         }
         return res.status(200).json({
             success: true,
@@ -41,7 +43,7 @@ const fetchDashBoardInfo = async (req, res) => {
     }
 }
 
-const editCurrentMeetingName = (req, res) => {
+const editCurrentMeetingName = async (req, res) => {
     var { meeting_id, name } = req.body;
     const gmail = req.user.gmail;
     if (!meeting_id || !name || !gmail) {
@@ -51,13 +53,15 @@ const editCurrentMeetingName = (req, res) => {
         })
     }
     meeting_id = meeting_id + " " + gmail;
-    if (!meeting_status[meeting_id]) {
+    var current_recording = await client.exists(`meeting:${req.user.gmail}`);
+    if (!current_recording) {
         return res.status(400).json({
             success: false,
             message: "No active meeting"
         })
     }
-    meeting_name[meeting_id] = name;
+    current_recording = await client.hGetAll(`meeting:${req.user.gmail}`);
+    await client.hSet(`meeting:${req.user.gmail}`, "name", name);
     return res.status(200).json({
         success: true,
         message: "Meeting name edited successfully"

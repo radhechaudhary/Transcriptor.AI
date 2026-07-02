@@ -1,9 +1,10 @@
-import { meeting_status, current_recordings, meeting_start_time, meeting_end_time, meeting_saved, meeting_name } from "../constants.js";
+import { meeting_saved } from "../constants.js";
 import db from "../database/meet.db.js";
 import getLLM from "../ai-workflows/chatModel.js";
+import client from "../redis-client.js";
 
 
-const startMeeting = (req, res) => {
+const startMeeting = async (req, res) => {
     var { meeting_id } = req.body;
     if (!meeting_id) {
         return res.status(400).json({
@@ -11,6 +12,7 @@ const startMeeting = (req, res) => {
             message: "Meeting ID is required"
         })
     }
+
     meeting_id = meeting_id + " " + req.user.gmail;
     if (meeting_saved[meeting_id]) {
         return res.status(400).json({
@@ -18,16 +20,25 @@ const startMeeting = (req, res) => {
             message: "Meeting is already saved"
         })
     }
-    if (current_recordings[req.user.gmail]) {
-        meeting_status[meeting_id] = "active";
+    const current_meeting = await client.exists(`meeting:${req.user.gmail}`);
+    if (current_meeting !== 0) {
+        await client.hSet(`meeting:${req.user.gmail}`,
+            'status',
+            "active"
+        );
         console.log("meeting resumed");
         return res.status(200).json({
             success: true,
             message: "Meeting resumed"
         })
     }
-    meeting_status[meeting_id] = "active";
-    current_recordings[req.user.gmail] = meeting_id;
+    await client.hSet(`meeting:${req.user.gmail}`, {
+        'status': "active",
+        "meeting_id": meeting_id,
+        "start_time": Date.now(),
+        "name": meeting_id.split(" ")[0],
+    }
+    );
     console.log("meeting started");
     return res.status(200).json({
         success: true,
@@ -45,15 +56,18 @@ const endMeeting = async (req, res) => {
         })
     }
     meeting_id = meeting_id + " " + req.user.gmail;
-    if (!meeting_status[meeting_id]) {
+    var current_meeting = await client.exists(`meeting:${req.user.gmail}`);
+    if (!current_meeting) {
         return res.status(400).json({
             success: false,
             message: "No active meeting"
         })
     }
-    if (!meeting_end_time[meeting_id] || !meeting_start_time[meeting_id]) {
+    current_meeting = await client.hGetAll(`meeting:${req.user.gmail}`);
+    console.log(current_meeting)
+    if (!current_meeting.start_time || !current_meeting.end_time) {
+        await client.del(`meeting:${req.user.gmail}`);
         delete meeting_status[meeting_id];
-        delete current_recordings[req.user.gmail];
         return res.status(400).json({
             success: false,
             message: "Not recorded till now"
@@ -61,6 +75,8 @@ const endMeeting = async (req, res) => {
     }
     console.log("meeting ended")
     meeting_saved[meeting_id] = true;
+    current_meeting = await client.hGetAll(`meeting:${req.user.gmail}`);
+    const duration = Date.now() - parseInt(current_meeting.start_time);
 
     try {
         var context = ""
@@ -89,13 +105,9 @@ const endMeeting = async (req, res) => {
         const summaryData = JSON.parse(llm_response.text)
         const { insights, decisions_made, topics, summary } = summaryData;
         await db.query('INSERT INTO meeting_info (meeting_id, gmail, insights, decisions_made, topics, summary) VALUES ($1,$2,$3,$4,$5,$6)', [meeting_id.split(" ")[0], req.user.gmail, insights, decisions_made, topics, summary]);
-        await db.query(`INSERT INTO meetings (meeting_id, gmail, name,   duration, date_time, queries) VALUES ($1,$2,$3,$4,$5,$6)`, [meeting_id.split(" ")[0], req.user.gmail, meeting_name[meeting_id] || meeting_id.split(" ")[0], meeting_end_time[meeting_id] - meeting_start_time[meeting_id], new Date().toLocaleString(), 0]);
+        await db.query(`INSERT INTO meetings (meeting_id, gmail, name,   duration, date_time, queries) VALUES ($1,$2,$3,$4,$5,$6)`, [meeting_id.split(" ")[0], req.user.gmail, meeting_name[meeting_id] || meeting_id.split(" ")[0], duration, new Date().toLocaleString(), 0]);
         await db.query(`UPDATE users SET meetings = meetings + 1 WHERE gmail = $1`, [req.user.gmail]);
-        delete meeting_status[meeting_id];
-        delete current_recordings[req.user.gmail];
-        delete meeting_end_time[meeting_id];
-        delete meeting_start_time[meeting_id];
-        delete meeting_name[meeting_id];
+        await client.del(`meeting:${req.user.gmail}`);
     }
     catch (err) {
         console.log(err)
@@ -106,7 +118,7 @@ const endMeeting = async (req, res) => {
     })
 }
 
-const pauseMeeting = (req, res) => {
+const pauseMeeting = async (req, res) => {
     var { meeting_id } = req.body;
     if (!meeting_id) {
         return res.status(400).json({
@@ -120,21 +132,22 @@ const pauseMeeting = (req, res) => {
             message: "Meeting ID is required"
         })
     }
-    if (!current_recordings[req.user.gmail]) {
+    var current_meeting = await client.exists(`meeting:${req.user.gmail}`);
+    if (!current_meeting) {
         return res.status(400).json({
             success: false,
             message: "No active meeting"
         })
     }
     meeting_id = meeting_id + " " + req.user.gmail;
-    if (!meeting_status[meeting_id] && meeting_status[meeting_id] === "paused") {
+    current_meeting = await client.hGetAll(`meeting:${req.user.gmail}`);
+    if (current_meeting.status === "paused") {
         return res.status(400).json({
             success: false,
             message: "Meeting is already paused"
         })
     }
-
-    meeting_status[meeting_id] = "paused";
+    await client.hSet(`meeting:${req.user.gmail}`, "status", "paused");
     console.log("meeting paused")
     return res.status(200).json({
         success: true,
@@ -142,20 +155,4 @@ const pauseMeeting = (req, res) => {
     })
 }
 
-const resumeMeeting = (req, res) => {
-    var { meeting_id } = req.body;
-    if (!meeting_id) {
-        return res.status(400).json({
-            success: false,
-            message: "Meeting ID is required"
-        })
-    }
-    meeting_id = meeting_id + " " + req.user.gmail;
-    meeting_status[meeting_id] = "active";
-    return res.status(200).json({
-        success: true,
-        message: "Meeting resumed"
-    })
-}
-
-export { startMeeting, endMeeting, pauseMeeting, resumeMeeting }
+export { startMeeting, endMeeting, pauseMeeting }

@@ -3,8 +3,8 @@ import { collection } from "../db/rag.js";
 import { ChatGroq } from "@langchain/groq";
 import dotenv from "dotenv";
 import db from "../database/meet.db.js";
-import { meeting_start_time, meeting_end_time } from "../constants.js";
 import getLLM from "../ai-workflows/chatModel.js";
+import client from "../redis-client.js";
 
 const llm = getLLM()
 
@@ -118,10 +118,10 @@ const uploadChunk = async (req, res) => {
                 }],
                 ids: [chunk_id]
             });
-            if (!meeting_start_time[meeting_id]) {
-                meeting_start_time[meeting_id] = chunk[0].timestamp;
-            }
-            meeting_end_time[meeting_id] = chunk[chunk.length - 1].timestamp;
+            await client.hSet(`meeting:${req.user.gmail}`, {
+                'start_time': chunk[0].timestamp,
+                'end_time': chunk[chunk.length - 1].timestamp
+            });
             summarizeChunk(documentText, meeting_id, chunk_id);
             return res.status(200).json({ message: "Chunk uploaded successfully" });
         }

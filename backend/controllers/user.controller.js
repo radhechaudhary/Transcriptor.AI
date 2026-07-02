@@ -2,7 +2,7 @@ import db from "../database/meet.db.js";
 import bcrypt from "bcrypt";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
-import { sessions } from '../constants.js'
+import client from "../redis-client.js";
 import crypto from "crypto";
 dotenv.config()
 
@@ -85,8 +85,8 @@ const login = async (req, res) => {
         if (origin.includes("https://meet.google.com")) {
             const session_id = crypto.randomUUID();
             console.log("Meet Login");
-            sessions[gmail] = session_id;
-            console.log(sessions);
+            client.set(gmail, session_id);
+            console.log(session_id);
             res.cookie("session_id", session_id, {
                 httpOnly: true,
                 secure: true,
