@@ -44,6 +44,8 @@ const MessagesState = {
 
     query_type: z.string(),
 
+    rewritten_query: z.string(),
+
     relevant_chunks: z.array(z.string()),
 
     context: z.string(),
@@ -51,6 +53,10 @@ const MessagesState = {
     llm_response: z.string(),
 
     gmail: z.string(),
+
+    retrieval_grade: z.string(),
+
+    retrieval_count: z.number().default(0),
 };
 
 // const llm = new ChatOpenRouter({
@@ -125,7 +131,7 @@ const query_type_router = (state) => {
 const sepcific_query = async (state) => {
     const meeting_ids = state.meeting_ids;
     console.log("meeting id", meeting_ids)
-    const query = [state.messages[state.messages.length - 1].content];
+    const query = [state.rewritten_query || state.messages[state.messages.length - 1].content];
     const results = await collection.query({
         queryTexts: [query],
         nResults: 10,
@@ -153,6 +159,53 @@ const sepcific_query = async (state) => {
     }
     // console.log("context", context)
     state.context = context;
+    state.retrieval_count = state.retrieval_count + 1;
+    return state;
+}
+
+const gradeRetrieval = async (state) => {
+    const result = await llm.invoke([
+        {
+            role: "system",
+            content: `
+            You are a Retrieval Evaluator for a RAG system.
+
+            Given a QUERY and RETRIEVED DOCUMENTS, decide if the documents are sufficient to
+            fully answer the query (relevant + specific + complete enough, no outside knowledge needed).
+
+            If NOT sufficient, rewrite the query to be more specific/keyword-rich for better retrieval.
+
+            QUERY: ${state.messages[state.messages.length - 1].content}
+            DOCUMENTS: ${state.context}
+
+            Respond ONLY in this JSON format:
+            {
+            "verdict": "GOOD" | "BAD",
+            "reasoning": "<1 sentence why>",
+            "rewritten_query": "<better query, or null if GOOD>"
+            }`
+        }
+    ])
+    state.retrieval_grade = JSON.parse(result['content']).verdict;
+    state.rewritten_query = JSON.parse(result['content']).rewritten_query;
+    return state;
+}
+
+const retrieve_router = (state) => {
+
+    if (state.retrieval_grade === "GOOD") {
+        return "llm_call";
+    }
+    else if (state.retrieval_count >= 3) {
+        return "end";
+    }
+    else {
+        return "specific_query";
+    }
+}
+
+const end_retrieval = async (state) => {
+    state.context = null;
     return state;
 }
 
@@ -199,7 +252,7 @@ const llm_call = async (state) => {
                     ${state.context || "No relevant meeting context available."}
 
                     User Question:
-                    ${state.question}
+                    ${state.messages[state.messages.length - 1].content}
 
                     Answer:`,
         },
@@ -216,9 +269,13 @@ const agent = new StateGraph({ channels: MessagesState })
     .addNode("general_query", general_query)
     .addNode("small_talk", small_talk)
     .addNode("llm_call", llm_call)
+    .addNode("grade_retrieval", gradeRetrieval)
+    .addNode("end_retrieval", end_retrieval)
     .addEdge(START, "extract_query_type")
     .addConditionalEdges("extract_query_type", query_type_router, { specific: "specific_query", general: "general_query", small_talk: "small_talk" })
-    .addEdge("specific_query", "llm_call")
+    .addEdge("specific_query", "grade_retrieval")
+    .addConditionalEdges("grade_retrieval", retrieve_router, { llm_call: "llm_call", specific_query: "specific_query", end: "end_retrieval" })
+    .addEdge("end_retrieval", "llm_call")
     .addEdge("general_query", "llm_call")
     .addEdge("small_talk", END)
     .addEdge("llm_call", END)
