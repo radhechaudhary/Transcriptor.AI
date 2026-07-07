@@ -37,16 +37,26 @@ const query = async (req, res) => {
     if (!messages) {
         return res.status(400).json({ message: "Messages is required" });
     }
-    compiled_agent.invoke({
-        meeting_ids: meeting_ids,
-        messages: messages,
-        gmail: req.user.gmail
-    }).then((result) => {
-        return res.status(200).json({ success: true, response: result.llm_response });
-    })
-        .catch((err) => {
-            console.log(err);
-            return res.status(500).json({ success: false, message: "Internal server error" });
+    try {
+        const stream = await compiled_agent.stream({
+            meeting_ids: meeting_ids,
+            messages: messages,
+            gmail: req.user.gmail
+        }, {
+            streamMode: "messages"
         })
+        var i = 0;
+        for await (const chunk of stream) {
+            // console.log(chunk[1].langgraph_node)
+            if (chunk[1].langgraph_node !== "extract_query_type" && chunk[1].langgraph_node !== "grade_retrieval") res.write(chunk[0].content)
+
+        }
+
+        res.end();
+    }
+    catch (err) {
+        console.log(err);
+        return res.status(500).json({ success: false, message: "Internal server error" });
+    }
 }
 export { query }

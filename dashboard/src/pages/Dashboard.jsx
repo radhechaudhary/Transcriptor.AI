@@ -150,6 +150,8 @@ const Dashboard = () => {
     );
   };
 
+  const [answer, setAnswer] = useState("");
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -158,15 +160,34 @@ const Dashboard = () => {
     const msg = chatInput;
     setChatInput('');
     try {
-      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/chat-query/query`, {
-        meeting_ids: selectedResources,
-        messages: [...messages, { role: 'human', content: msg }],
-      }, {
-        withCredentials: true
-      }).then(res => {
-        console.log(res.data);
-        setMessages([...messages, { role: 'human', content: chatInput }, { role: 'ai', content: res.data.response }]);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/chat-query/query`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          meeting_ids: selectedResources,
+          messages: [...messages, { role: 'human', content: msg }],
+        })
       })
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      var text = "";
+      while (true) {
+
+        const { done, value } = await reader.read();
+
+        if (done) {
+          setAnswer("");
+          setMessages([...messages, { role: 'human', content: chatInput }, { role: 'ai', content: text }]);
+          break;
+        }
+
+        text += decoder.decode(value);
+        setAnswer(text);
+      }
+
     }
     catch (err) {
       setMessages([...messages, { role: 'human', content: chatInput }, { role: 'ai', content: 'Something went wrong' }]);
@@ -182,7 +203,7 @@ const Dashboard = () => {
         behavior: 'smooth'
       })
     }
-  }, [messages])
+  }, [messages, answer])
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] dark:bg-[#202124] transition-colors duration-300 font-sans text-slate-900 dark:text-slate-100">
@@ -397,6 +418,11 @@ const Dashboard = () => {
                   </div>
                 </div>
               ))}
+              {answer ? <div key={"ans"} className={`flex justify-start`}>
+                <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm bg-[#f1f3f4] dark:bg-[#303134] text-slate-800 dark:text-slate-200 rounded-tl-sm`}>
+                  <ReactMarkdown>{answer}</ReactMarkdown>
+                </div>
+              </div> : null}
             </CardContent>
 
             {/* Chat Input */}

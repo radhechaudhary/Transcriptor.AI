@@ -108,6 +108,7 @@ const extract_query_type = async (state) => {
         // console.log(result['content'])
         state.query_type = result['content']
         console.log("query type", state.query_type)
+        state.retrieval_count = 0;
         return state;
     }
     catch (err) {
@@ -118,6 +119,7 @@ const extract_query_type = async (state) => {
 
 const query_type_router = (state) => {
     if (state.query_type === "SPECIFIC") {
+        state.retrieval_count = 0;
         return "specific";
     }
     else if (state.query_type === "GENERAL") {
@@ -130,7 +132,6 @@ const query_type_router = (state) => {
 
 const sepcific_query = async (state) => {
     const meeting_ids = state.meeting_ids;
-    console.log("meeting id", meeting_ids)
     const query = [state.rewritten_query || state.messages[state.messages.length - 1].content];
     const results = await collection.query({
         queryTexts: [query],
@@ -157,9 +158,9 @@ const sepcific_query = async (state) => {
     for (const chunk of filteredResult) {
         context += chunk.document + "\n";
     }
-    // console.log("context", context)
     state.context = context;
     state.retrieval_count = state.retrieval_count + 1;
+
     return state;
 }
 
