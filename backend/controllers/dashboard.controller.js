@@ -24,10 +24,13 @@ const fetchDashBoardInfo = async (req, res) => {
 
         }
         var currentMeeting = null;
-        var current_recording = await client.hGetAll(`meeting:${req.user.gmail}`);
-        console.log(current_recording)
+        var current_recording = await client.exists(`meeting:${req.user.gmail}`);
         if (current_recording) {
+            current_recording = await client.hGetAll(`meeting:${req.user.gmail}`);
             currentMeeting = { status: current_recording.status, name: current_recording.name, meeting_id: current_recording.meeting_id, duration: current_recording.end_time - current_recording.start_time }
+        }
+        else {
+            current_recording = await client.hGetAll(`meeting:${req.user.gmail}`);
         }
         return res.status(200).json({
             success: true,
