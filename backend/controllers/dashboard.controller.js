@@ -150,7 +150,7 @@ const fetchMeetingInfo = async (req, res) => {
 }
 
 const delete_meeting = async (req, res) => {
-    const { meeting_id } = req.params;
+    var { meeting_id } = req.params;
     const { gmail } = req.user;
     if (!meeting_id || !gmail) {
         return res.status(400).json({
@@ -162,7 +162,7 @@ const delete_meeting = async (req, res) => {
         await db.query(' delete from meetings where gmail = $1 and meeting_id = $2', [gmail, meeting_id])
         await db.query(' delete from meeting_info where gmail = $1 and meeting_id = $2', [gmail, meeting_id])
         await db.query('update users set meetings = meetings-1 where gmail = $1', [gmail])
-        const meeting_id = meeting_id + " " + gmail
+        meeting_id = meeting_id + " " + gmail
         if (meeting_saved[meeting_id]) delete meeting_saved[meeting_id]
         res.status(200).json({ status: true })
     }

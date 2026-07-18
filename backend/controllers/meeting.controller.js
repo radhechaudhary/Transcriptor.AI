@@ -67,7 +67,6 @@ const endMeeting = async (req, res) => {
     console.log(current_meeting)
     if (!current_meeting.start_time || !current_meeting.end_time) {
         await client.del(`meeting:${req.user.gmail}`);
-        delete meeting_status[meeting_id];
         return res.status(400).json({
             success: false,
             message: "Not recorded till now"
