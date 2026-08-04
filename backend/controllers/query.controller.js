@@ -29,7 +29,6 @@ const filterResult = (results) => {
 const query = async (req, res) => {
     const { meeting_ids } = req.body;
     const { messages } = req.body;
-
     if (!meeting_ids || meeting_ids.length == 0) {
         return res.status(200).json({ message: "Meeting id is required", response: "Please select at least one meeting from where I can fetch the data." });
     }

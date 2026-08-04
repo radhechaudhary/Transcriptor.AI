@@ -55,7 +55,7 @@ const Dashboard = () => {
       }
       // console.log(res.data.data);
     }).catch(error => {
-      navigate('/login', { replace: true });
+      // navigate('/login', { replace: true });
       console.log(error);
     })
   }, [])

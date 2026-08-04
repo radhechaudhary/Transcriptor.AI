@@ -8,7 +8,23 @@ dotenv.config()
 
 const register = async (req, res) => {
     try {
-        const { name, gmail, password } = req.body;
+        var { name, gmail, password } = req.body;
+        name = name.trim();
+        gmail = gmail.trim();
+        password = password.trim();
+
+        if (name.length < 2 || name.length > 45) {
+            return res.status(400).json({
+                success: false,
+                message: "Name too long or short"
+            });
+        }
+        if (gmail.length < 2 || gmail.length > 45) {
+            return res.status(400).json({
+                success: false,
+                message: "gmail too long or short"
+            });
+        }
 
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
@@ -54,8 +70,17 @@ const login = async (req, res) => {
     console.log(req.headers.origin, "originn");
     const origin = req.headers.origin;
 
+
     try {
-        const { gmail, password } = req.body;
+        var { gmail, password } = req.body;
+        gmail = gmail.trim();
+        password = password.trim();
+        if (gmail.length < 2 || gmail.length > 45) {
+            return res.status(400).json({
+                success: false,
+                message: "user not"
+            });
+        }
         // console.log(req.body, "bhut fark padta hai");
 
         if (!gmail || !password) {

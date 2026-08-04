@@ -48,12 +48,17 @@ const fetchDashBoardInfo = async (req, res) => {
 
 const editCurrentMeetingName = async (req, res) => {
     var { meeting_id, name } = req.body;
+    name = name.trim();
+
     const gmail = req.user.gmail;
     if (!meeting_id || !name || !gmail) {
         return res.status(400).json({
             success: false,
             message: "Meeting ID and name and gmail is required"
         })
+    }
+    if (name.length > 20) {
+        name = name.substring(0, 20)
     }
     meeting_id = meeting_id + " " + gmail;
     var current_recording = await client.exists(`meeting:${req.user.gmail}`);

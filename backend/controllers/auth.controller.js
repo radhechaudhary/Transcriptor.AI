@@ -15,6 +15,7 @@ const auth = async (req, res) => {
     const decoded = jsonwebtoken.verify(token, process.env.SECRET_KEY);
     // console.log(current_recordings[decoded.gmail]);
     if (!decoded) {
+        res.clearCookie("token");
         return res.status(401).json({
             success: false,
             message: "Unauthorized"
