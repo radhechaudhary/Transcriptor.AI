@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { Moon, Sun, LogOut, Video, Database, MessageSquare, History, Check, Search, Paperclip, Send, Edit2, X } from 'lucide-react';
+import { Moon, Sun, LogOut, Video, Database, MessageSquare, History, Check, Paperclip, Send, Edit2, X, User, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown"
 const Dashboard = () => {
   const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
+  const [showProfile, setShowProfile] = useState(false);
 
   const [info, setInfo] = useState({
     total_meetings: 0,
@@ -210,22 +211,27 @@ const Dashboard = () => {
       {/* Top Navigation */}
       <header className="sticky top-0 z-10 backdrop-blur-md bg-[#ffffff]/80 dark:bg-[#202124]/80 border-b border-[#dadce0] dark:border-[#3c4043] px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#00796b] flex items-center justify-center text-white">
+          <div className="w-8 h-8 rounded-lg bg-[#00796b] flex items-center justify-center text-white cursor-pointer" onClick={() => navigate('/')}>
             <Video size={18} />
           </div>
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#FBBC05]">
+          <Link to={'/'} className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#FBBC05] cursor-pointer" onClick={() => navigate('/')}>
             MeetAssist
-          </h1>
+          </Link>
         </div>
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={toggleTheme} className="rounded-full">
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </Button>
           <div className="h-8 w-px bg-[#dadce0] dark:bg-[#3c4043]" />
-          <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
-            <LogOut size={16} />
-            Sign Out
-          </Button>
+          <button
+            onClick={() => setShowProfile(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-[#dadce0] dark:border-[#3c4043] bg-white dark:bg-[#2d2e30] cursor-pointer"
+          >
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#00796b] to-[#80cbc4] flex items-center justify-center text-white text-xs font-semibold uppercase">
+              {info.name ? info.name.charAt(0) : 'U'}
+            </div>
+            <span className="text-xs font-semibold hidden md:inline">{info.name || 'User'}</span>
+          </button>
         </div>
       </header>
 
@@ -446,6 +452,72 @@ const Dashboard = () => {
           </Card>
         </div>
       </main>
+
+      {/* Profile Modal */}
+      {showProfile && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] rounded-3xl w-full max-w-md shadow-2xl p-6 relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Ambient pattern in modal */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-[#00796b]/10 blur-xl" />
+            <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full bg-blue-500/10 blur-xl" />
+
+            <div className="flex justify-between items-center mb-6 relative z-10">
+              <h3 className="text-xl font-bold">User Profile</h3>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowProfile(false)}
+                className="h-8 w-8 rounded-full"
+              >
+                <X size={18} />
+              </Button>
+            </div>
+
+            <div className="flex flex-col items-center text-center pb-6 border-b border-[#dadce0] dark:border-[#3c4043] relative z-10">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#00796b] via-emerald-500 to-[#80cbc4] flex items-center justify-center text-white text-3xl font-extrabold shadow-lg shadow-teal-500/20 mb-4 uppercase">
+                {info.name ? info.name.charAt(0) : 'U'}
+              </div>
+              <h4 className="text-xl font-bold">{info.name || 'User'}</h4>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5 justify-center">
+                <Mail size={14} className="text-slate-400" />
+                {info.gmail || 'user@example.com'}
+              </p>
+            </div>
+
+            <div className="py-6 space-y-4 relative z-10">
+              <h5 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account Stats</h5>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-4">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Meetings Recorded</p>
+                  <p className="text-2xl font-bold mt-1 text-[#00796b] dark:text-[#80cbc4]">{info.total_meetings}</p>
+                </div>
+                <div className="bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] rounded-2xl p-4">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Queries Made</p>
+                  <p className="text-2xl font-bold mt-1 text-purple-600 dark:text-purple-400">{info.queryMade}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2 relative z-10">
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex-1 gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-900/20"
+              >
+                <LogOut size={16} />
+                Sign Out
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => setShowProfile(false)}
+                className="flex-1 bg-[#00796b] hover:bg-[#00695c]"
+              >
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

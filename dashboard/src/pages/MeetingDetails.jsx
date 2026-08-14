@@ -260,7 +260,7 @@ const MeetingDetails = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="rounded-full">
             <ArrowLeft size={20} />
           </Button>
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#FBBC05] hidden sm:block">
+          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#FBBC05] cursor-pointer hidden sm:block" onClick={() => navigate('/')}>
             MeetAssist
           </h1>
         </div>

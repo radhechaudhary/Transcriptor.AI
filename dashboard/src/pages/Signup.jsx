@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
+import { Video, Sun, Moon } from 'lucide-react';
 import axios from 'axios';
-
 
 const Signup = () => {
   const [name, setName] = useState('');
@@ -10,6 +11,7 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { isDark, toggleTheme } = useTheme();
 
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_BACKEND_URL}/user/auth`, { withCredentials: true }).then(res => {
@@ -35,28 +37,47 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-950 p-4 font-sans">
-      <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 p-10 rounded-3xl shadow-2xl animate-fade-in-up">
+    <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-[#202124] transition-colors duration-300 p-4 font-sans relative">
+      {/* Top Header */}
+      <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center">
+        <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="w-8 h-8 rounded-lg bg-[#00796b] flex items-center justify-center text-white">
+            <Video size={18} />
+          </div>
+          <span className="text-xl font-bold bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#FBBC05] bg-clip-text text-transparent">
+            MeetAssist
+          </span>
+        </div>
+        <button
+          onClick={toggleTheme}
+          className="rounded-full p-2.5 bg-white dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          aria-label="Toggle theme"
+        >
+          {isDark ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+      </div>
+
+      <div className="w-full max-w-md bg-white dark:bg-[#2d2e30] border border-[#dadce0] dark:border-[#3c4043] p-10 rounded-3xl shadow-xl animate-fade-in-up mt-16 sm:mt-0">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#FBBC05] bg-clip-text text-transparent">
             Create Account
           </h1>
-          <p className="text-slate-400 text-sm">Join us and start managing</p>
+          <p className="text-slate-500 dark:text-slate-400 text-sm">Join us and start managing</p>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-200 text-sm text-center">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-600 dark:text-red-400 text-sm text-center">
             {error}
           </div>
         )}
 
         <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-2">
-            <label className="text-slate-300 text-sm font-medium" htmlFor="name">
+            <label className="text-slate-700 dark:text-slate-300 text-sm font-medium" htmlFor="name">
               Full Name
             </label>
             <input
-              className="bg-slate-900/60 border border-white/10 p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/25 transition-all"
+              className="bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] p-3 rounded-xl text-slate-900 dark:text-[#e8eaed] placeholder-slate-400 focus:outline-none focus:border-[#00796b] focus:ring-2 focus:ring-[#00796b]/25 transition-all text-sm"
               type="text"
               id="name"
               placeholder="Enter your name"
@@ -66,11 +87,11 @@ const Signup = () => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-slate-300 text-sm font-medium" htmlFor="email">
+            <label className="text-slate-700 dark:text-slate-300 text-sm font-medium" htmlFor="email">
               Email
             </label>
             <input
-              className="bg-slate-900/60 border border-white/10 p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/25 transition-all"
+              className="bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] p-3 rounded-xl text-slate-900 dark:text-[#e8eaed] placeholder-slate-400 focus:outline-none focus:border-[#00796b] focus:ring-2 focus:ring-[#00796b]/25 transition-all text-sm"
               type="email"
               id="email"
               placeholder="Enter your email"
@@ -80,11 +101,11 @@ const Signup = () => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-slate-300 text-sm font-medium" htmlFor="password">
+            <label className="text-slate-700 dark:text-slate-300 text-sm font-medium" htmlFor="password">
               Password
             </label>
             <input
-              className="bg-slate-900/60 border border-white/10 p-3 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/25 transition-all"
+              className="bg-[#f8f9fa] dark:bg-[#202124] border border-[#dadce0] dark:border-[#3c4043] p-3 rounded-xl text-slate-900 dark:text-[#e8eaed] placeholder-slate-400 focus:outline-none focus:border-[#00796b] focus:ring-2 focus:ring-[#00796b]/25 transition-all text-sm"
               type="password"
               id="password"
               placeholder="Create a password"
@@ -96,7 +117,7 @@ const Signup = () => {
           <button
             type="submit"
             disabled={loading}
-            className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white border-none py-3.5 px-4 rounded-xl font-semibold cursor-pointer transition-all hover:-translate-y-0.5 hover:opacity-90 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+            className="mt-2 bg-[#00796b] hover:bg-[#00695c] text-white border-none py-3.5 px-4 rounded-xl font-semibold cursor-pointer transition-all hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2 shadow-lg shadow-teal-500/10"
           >
             {loading ? (
               <>
@@ -110,8 +131,8 @@ const Signup = () => {
           </button>
         </form>
 
-        <div className="text-center mt-6 text-slate-400 text-sm">
-          <p>Already have an account? <Link to="/login" className="text-purple-400 font-semibold hover:text-pink-500 transition-colors">Sign in</Link></p>
+        <div className="text-center mt-6 text-slate-500 dark:text-slate-400 text-sm">
+          <p>Already have an account? <Link to="/login" className="text-[#00796b] dark:text-[#80cbc4] font-semibold hover:underline transition-colors">Sign in</Link></p>
         </div>
       </div>
     </div>
