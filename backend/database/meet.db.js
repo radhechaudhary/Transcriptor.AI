@@ -5,7 +5,7 @@ dotenv.config();
 
 // console.log(process.env.DB_HOST)
 
-const db = new pg.Client({
+const db = new pg.Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
