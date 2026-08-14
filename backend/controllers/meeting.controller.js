@@ -23,8 +23,7 @@ const startMeeting = async (req, res) => {
     const current_meeting = await client.exists(`meeting:${req.user.gmail}`);
     if (current_meeting !== 0) {
         await client.hSet(`meeting:${req.user.gmail}`,
-            'status',
-            "active"
+            {'status': "active"}
         );
         console.log("meeting resumed");
         return res.status(200).json({

@@ -35,7 +35,15 @@ const fetchDashBoardInfo = async (req, res) => {
         return res.status(200).json({
             success: true,
             message: "Dashboard info fetched successfully",
-            data: { total_meetings: total_meetings, queryMade: total_queries, availableMeetings: availableMeetings, meetings: meetingInfo.rows, currentMeeting }
+            data: { 
+                name: userInfo.rows[0]?.name || "User",
+                gmail: gmail,
+                total_meetings: total_meetings, 
+                queryMade: total_queries, 
+                availableMeetings: availableMeetings, 
+                meetings: meetingInfo.rows, 
+                currentMeeting 
+            }
         })
     } catch (error) {
         console.log("error_recieved", error)
