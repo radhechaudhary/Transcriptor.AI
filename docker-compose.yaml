@@ -7,8 +7,9 @@ services:
             - chromadb
         volumes:
             - ./backend:/app
+            - /app/node_modules
         ports:
-            - "4000:3000"
+            - "3000:3000"
         environment:
             - DB_PASSWORD=Radhe@1234
             - DB_PORT=5432
@@ -25,6 +26,8 @@ services:
             - .env
     dashboard:
         build: ./dashboard
+        environment:
+            - VITE_BACKEND_URL=http://localhost:3000
         volumes:
             - ./dashboard:/app
         ports:
